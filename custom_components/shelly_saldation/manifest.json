@@ -1,0 +1,10 @@
+{
+  "domain": "shelly_saldation",
+  "name": "Shelly Saldation",
+  "codeowners": [],
+  "config_flow": true,
+  "documentation": "https://github.com/RF1705/shelly-saldation",
+  "iot_class": "local_polling",
+  "requirements": [],
+  "version": "0.1.0"
+}
