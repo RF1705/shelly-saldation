@@ -10,31 +10,35 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_HOST, UnitOfEnergy, UnitOfPower
+from homeassistant.const import UnitOfEnergy, UnitOfPower
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN, MANUFACTURER, MODEL
-from .coordinator import BalancedSample, Shelly3EMBalancedCoordinator
+from .coordinator import BalancedSample, ShellySaldationCoordinator
 
 
 @dataclass(frozen=True, kw_only=True)
-class Shelly3EMBalancedSensorDescription(SensorEntityDescription):
-    value_fn: Callable[[BalancedSample], float]
+class ShellySaldationSensorDescription(SensorEntityDescription):
+    value_fn: Callable[[BalancedSample], float | None]
 
 
-SENSORS: tuple[Shelly3EMBalancedSensorDescription, ...] = (
-    Shelly3EMBalancedSensorDescription(
+SENSORS: tuple[ShellySaldationSensorDescription, ...] = (
+    ShellySaldationSensorDescription(
         key="net_power",
         translation_key="net_power",
         name="Balanced net power",
         native_unit_of_measurement=UnitOfPower.WATT,
         device_class=SensorDeviceClass.POWER,
         state_class=SensorStateClass.MEASUREMENT,
-        value_fn=lambda data: round(data.status.net_power_w, 2),
+        value_fn=lambda data: (
+            round(data.snapshot.net_power_w, 2)
+            if data.snapshot.net_power_w is not None
+            else None
+        ),
     ),
-    Shelly3EMBalancedSensorDescription(
+    ShellySaldationSensorDescription(
         key="import_energy",
         translation_key="import_energy",
         name="Balanced grid import energy",
@@ -43,7 +47,7 @@ SENSORS: tuple[Shelly3EMBalancedSensorDescription, ...] = (
         state_class=SensorStateClass.TOTAL_INCREASING,
         value_fn=lambda data: round(data.import_total_kwh, 6),
     ),
-    Shelly3EMBalancedSensorDescription(
+    ShellySaldationSensorDescription(
         key="export_energy",
         translation_key="export_energy",
         name="Balanced grid export energy",
@@ -60,25 +64,25 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    coordinator = Shelly3EMBalancedCoordinator(hass, entry)
-    await coordinator.async_load_previous_status()
+    coordinator = ShellySaldationCoordinator(hass, entry)
+    await coordinator.async_load_previous_snapshot()
     await coordinator.async_config_entry_first_refresh()
     hass.data[DOMAIN][entry.entry_id] = coordinator
 
     async_add_entities(
         [
-            Shelly3EMBalancedSensor(coordinator, entry, description)
+            ShellySaldationSensor(coordinator, entry, description)
             for description in SENSORS
         ]
     )
 
 
-class Shelly3EMBalancedBaseEntity(CoordinatorEntity[Shelly3EMBalancedCoordinator]):
+class ShellySaldationBaseEntity(CoordinatorEntity[ShellySaldationCoordinator]):
     _attr_has_entity_name = True
 
     def __init__(
         self,
-        coordinator: Shelly3EMBalancedCoordinator,
+        coordinator: ShellySaldationCoordinator,
         entry: ConfigEntry,
     ) -> None:
         super().__init__(coordinator)
@@ -88,18 +92,17 @@ class Shelly3EMBalancedBaseEntity(CoordinatorEntity[Shelly3EMBalancedCoordinator
             "manufacturer": MANUFACTURER,
             "model": MODEL,
             "name": entry.title,
-            "configuration_url": f"http://{entry.data[CONF_HOST]}",
         }
 
 
-class Shelly3EMBalancedSensor(Shelly3EMBalancedBaseEntity, SensorEntity):
-    entity_description: Shelly3EMBalancedSensorDescription
+class ShellySaldationSensor(ShellySaldationBaseEntity, SensorEntity):
+    entity_description: ShellySaldationSensorDescription
 
     def __init__(
         self,
-        coordinator: Shelly3EMBalancedCoordinator,
+        coordinator: ShellySaldationCoordinator,
         entry: ConfigEntry,
-        description: Shelly3EMBalancedSensorDescription,
+        description: ShellySaldationSensorDescription,
     ) -> None:
         super().__init__(coordinator, entry)
         self.entity_description = description

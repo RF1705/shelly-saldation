@@ -3,35 +3,44 @@ from __future__ import annotations
 import voluptuous as vol
 
 from homeassistant import config_entries
-from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PASSWORD, CONF_USERNAME
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.components.sensor import SensorDeviceClass
+from homeassistant.const import CONF_NAME
+from homeassistant.helpers import selector
 
-from .api import Shelly3EMClient, Shelly3EMError
-from .const import CONF_SCAN_INTERVAL, DEFAULT_NAME, DEFAULT_SCAN_INTERVAL, DOMAIN
+from .const import (
+    CONF_EXPORT_ENERGY,
+    CONF_IMPORT_ENERGY,
+    CONF_POWER,
+    CONF_SCAN_INTERVAL,
+    DEFAULT_NAME,
+    DEFAULT_SCAN_INTERVAL,
+    DOMAIN,
+)
 
 
-class Shelly3EMBalancedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+class ShellySaldationConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
 
     async def async_step_user(self, user_input: dict | None = None):
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            host = user_input[CONF_HOST]
-            await self.async_set_unique_id(host.lower())
-            self._abort_if_unique_id_configured()
+            import_entities = user_input[CONF_IMPORT_ENERGY]
+            export_entities = user_input[CONF_EXPORT_ENERGY]
 
-            client = Shelly3EMClient(
-                async_get_clientsession(self.hass),
-                host,
-                user_input.get(CONF_USERNAME),
-                user_input.get(CONF_PASSWORD),
-            )
-            try:
-                await client.async_get_status()
-            except Shelly3EMError:
-                errors["base"] = "cannot_connect"
+            if not import_entities or not export_entities:
+                errors["base"] = "missing_sources"
+            elif len(import_entities) != len(export_entities):
+                errors["base"] = "source_count_mismatch"
             else:
+                selected_entities = [
+                    *import_entities,
+                    *export_entities,
+                    *user_input.get(CONF_POWER, []),
+                ]
+                await self.async_set_unique_id(",".join(sorted(selected_entities)))
+                self._abort_if_unique_id_configured()
+
                 return self.async_create_entry(
                     title=user_input.get(CONF_NAME) or DEFAULT_NAME,
                     data=user_input,
@@ -39,10 +48,28 @@ class Shelly3EMBalancedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         data_schema = vol.Schema(
             {
-                vol.Required(CONF_HOST): str,
                 vol.Optional(CONF_NAME, default=DEFAULT_NAME): str,
-                vol.Optional(CONF_USERNAME): str,
-                vol.Optional(CONF_PASSWORD): str,
+                vol.Required(CONF_IMPORT_ENERGY): selector.EntitySelector(
+                    selector.EntitySelectorConfig(
+                        domain="sensor",
+                        device_class=SensorDeviceClass.ENERGY,
+                        multiple=True,
+                    )
+                ),
+                vol.Required(CONF_EXPORT_ENERGY): selector.EntitySelector(
+                    selector.EntitySelectorConfig(
+                        domain="sensor",
+                        device_class=SensorDeviceClass.ENERGY,
+                        multiple=True,
+                    )
+                ),
+                vol.Optional(CONF_POWER): selector.EntitySelector(
+                    selector.EntitySelectorConfig(
+                        domain="sensor",
+                        device_class=SensorDeviceClass.POWER,
+                        multiple=True,
+                    )
+                ),
                 vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): vol.All(
                     vol.Coerce(int), vol.Range(min=5, max=300)
                 ),
