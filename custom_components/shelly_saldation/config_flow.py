@@ -3,7 +3,6 @@ from __future__ import annotations
 import voluptuous as vol
 
 from homeassistant import config_entries
-from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.const import CONF_NAME
 from homeassistant.helpers import selector
 
@@ -12,10 +11,12 @@ from .const import (
     CONF_IMPORT_ENERGY,
     CONF_POWER,
     CONF_SCAN_INTERVAL,
+    CONF_SOURCE_DEVICE,
     DEFAULT_NAME,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
 )
+from .discovery import discover_sources_for_device
 
 
 class ShellySaldationConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -25,50 +26,35 @@ class ShellySaldationConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            import_entities = user_input[CONF_IMPORT_ENERGY]
-            export_entities = user_input[CONF_EXPORT_ENERGY]
+            device_id = user_input[CONF_SOURCE_DEVICE]
+            sources = discover_sources_for_device(self.hass, device_id)
 
-            if not import_entities or not export_entities:
-                errors["base"] = "missing_sources"
-            elif len(import_entities) != len(export_entities):
-                errors["base"] = "source_count_mismatch"
+            if not sources.import_energy:
+                errors["base"] = "missing_import_sources"
+            elif not sources.export_energy:
+                errors["base"] = "missing_export_sources"
             else:
-                selected_entities = [
-                    *import_entities,
-                    *export_entities,
-                    *user_input.get(CONF_POWER, []),
-                ]
-                await self.async_set_unique_id(",".join(sorted(selected_entities)))
+                await self.async_set_unique_id(device_id)
                 self._abort_if_unique_id_configured()
 
+                title = user_input.get(CONF_NAME) or sources.device_name or DEFAULT_NAME
                 return self.async_create_entry(
-                    title=user_input.get(CONF_NAME) or DEFAULT_NAME,
-                    data=user_input,
+                    title=title,
+                    data={
+                        CONF_NAME: title,
+                        CONF_SOURCE_DEVICE: device_id,
+                        CONF_IMPORT_ENERGY: list(sources.import_energy),
+                        CONF_EXPORT_ENERGY: list(sources.export_energy),
+                        CONF_POWER: list(sources.power),
+                        CONF_SCAN_INTERVAL: user_input[CONF_SCAN_INTERVAL],
+                    },
                 )
 
         data_schema = vol.Schema(
             {
                 vol.Optional(CONF_NAME, default=DEFAULT_NAME): str,
-                vol.Required(CONF_IMPORT_ENERGY): selector.EntitySelector(
-                    selector.EntitySelectorConfig(
-                        domain="sensor",
-                        device_class=SensorDeviceClass.ENERGY,
-                        multiple=True,
-                    )
-                ),
-                vol.Required(CONF_EXPORT_ENERGY): selector.EntitySelector(
-                    selector.EntitySelectorConfig(
-                        domain="sensor",
-                        device_class=SensorDeviceClass.ENERGY,
-                        multiple=True,
-                    )
-                ),
-                vol.Optional(CONF_POWER): selector.EntitySelector(
-                    selector.EntitySelectorConfig(
-                        domain="sensor",
-                        device_class=SensorDeviceClass.POWER,
-                        multiple=True,
-                    )
+                vol.Required(CONF_SOURCE_DEVICE): selector.DeviceSelector(
+                    selector.DeviceSelectorConfig(integration="shelly")
                 ),
                 vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): vol.All(
                     vol.Coerce(int), vol.Range(min=5, max=300)

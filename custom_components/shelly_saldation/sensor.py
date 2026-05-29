@@ -15,7 +15,14 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, MANUFACTURER, MODEL
+from .const import (
+    CONF_EXPORT_ENERGY,
+    CONF_IMPORT_ENERGY,
+    CONF_POWER,
+    DOMAIN,
+    MANUFACTURER,
+    MODEL,
+)
 from .coordinator import BalancedSample, ShellySaldationCoordinator
 
 
@@ -113,3 +120,11 @@ class ShellySaldationSensor(ShellySaldationBaseEntity, SensorEntity):
         if self.coordinator.data is None:
             return None
         return self.entity_description.value_fn(self.coordinator.data)
+
+    @property
+    def extra_state_attributes(self) -> dict[str, list[str]]:
+        return {
+            "import_sources": self._entry.data[CONF_IMPORT_ENERGY],
+            "export_sources": self._entry.data[CONF_EXPORT_ENERGY],
+            "power_sources": self._entry.data.get(CONF_POWER, []),
+        }

@@ -1,0 +1,22 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Shelly Saldation",
+        "description": "Select the Shelly energy meter device. Shelly Saldation will discover its import and returned/export energy sensors automatically.",
+        "data": {
+          "name": "Name",
+          "source_device": "Shelly device",
+          "scan_interval": "Update interval"
+        }
+      }
+    },
+    "error": {
+      "missing_import_sources": "No import energy sensors were found on this device.",
+      "missing_export_sources": "No returned/export energy sensors were found on this device."
+    },
+    "abort": {
+      "already_configured": "This Shelly device is already configured."
+    }
+  }
+}
