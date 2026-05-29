@@ -28,10 +28,8 @@ class ShellySaldationConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             device_id = user_input[CONF_SOURCE_DEVICE]
             sources = discover_sources_for_device(self.hass, device_id)
 
-            if not sources.import_energy:
-                errors["base"] = "missing_import_sources"
-            elif not sources.export_energy:
-                errors["base"] = "missing_export_sources"
+            if not sources.power:
+                errors["base"] = "missing_power_sources"
             else:
                 await self.async_set_unique_id(device_id)
                 self._abort_if_unique_id_configured()

@@ -10,8 +10,7 @@
       }
     },
     "error": {
-      "missing_import_sources": "No import energy sensors were found on this device.",
-      "missing_export_sources": "No returned/export energy sensors were found on this device."
+      "missing_power_sources": "No phase power sensors were found on this device."
     },
     "abort": {
       "already_configured": "This Shelly device is already configured."

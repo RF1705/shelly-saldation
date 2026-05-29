@@ -139,20 +139,26 @@ class ShellySaldationSensor(ShellySaldationBaseEntity, SensorEntity):
     @property
     def extra_state_attributes(self) -> dict[str, list[str]]:
         attributes = {
-            "import_sources": self._entry.data[CONF_IMPORT_ENERGY],
-            "export_sources": self._entry.data[CONF_EXPORT_ENERGY],
             "power_sources": self._entry.data.get(CONF_POWER, []),
         }
+        if self._entry.data.get(CONF_IMPORT_ENERGY):
+            attributes["detected_import_energy_sources"] = self._entry.data[
+                CONF_IMPORT_ENERGY
+            ]
+        if self._entry.data.get(CONF_EXPORT_ENERGY):
+            attributes["detected_export_energy_sources"] = self._entry.data[
+                CONF_EXPORT_ENERGY
+            ]
         related_entities = self._related_entities()
         if related_entities:
             attributes[ATTR_ENTITY_ID] = related_entities
         return attributes
 
     def _related_entities(self) -> list[str]:
-        if self.entity_description.key == "net_power":
+        if self.entity_description.key in (
+            "net_power",
+            "import_energy",
+            "export_energy",
+        ):
             return self._entry.data.get(CONF_POWER, [])
-        if self.entity_description.key == "import_energy":
-            return self._entry.data[CONF_IMPORT_ENERGY]
-        if self.entity_description.key == "export_energy":
-            return self._entry.data[CONF_EXPORT_ENERGY]
         return []
