@@ -74,6 +74,7 @@ async def async_setup_entry(
     coordinator = ShellySaldationCoordinator(hass, entry)
     await coordinator.async_load_previous_snapshot()
     await coordinator.async_config_entry_first_refresh()
+    coordinator.async_start_listening()
     hass.data[DOMAIN][entry.entry_id] = coordinator
 
     async_add_entities(

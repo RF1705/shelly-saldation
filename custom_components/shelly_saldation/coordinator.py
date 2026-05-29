@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import timedelta
 import logging
 
 from homeassistant.config_entries import ConfigEntry
@@ -10,7 +9,8 @@ from homeassistant.const import (
     UnitOfEnergy,
     UnitOfPower,
 )
-from homeassistant.core import HomeAssistant
+from homeassistant.core import Event, HomeAssistant, callback
+from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
@@ -18,7 +18,6 @@ from .const import (
     CONF_EXPORT_ENERGY,
     CONF_IMPORT_ENERGY,
     CONF_POWER,
-    CONF_SCAN_INTERVAL,
     DOMAIN,
 )
 
@@ -64,7 +63,30 @@ class ShellySaldationCoordinator(DataUpdateCoordinator[BalancedSample]):
             hass,
             logger=_LOGGER,
             name=DOMAIN,
-            update_interval=timedelta(seconds=entry.data[CONF_SCAN_INTERVAL]),
+            update_interval=None,
+        )
+
+    @callback
+    def async_start_listening(self) -> None:
+        tracked_entities = [
+            *self._entry.data[CONF_IMPORT_ENERGY],
+            *self._entry.data[CONF_EXPORT_ENERGY],
+            *self._entry.data.get(CONF_POWER, []),
+        ]
+
+        @callback
+        def _handle_state_change(event: Event) -> None:
+            new_state = event.data.get("new_state")
+            if new_state is None or new_state.state in ("unknown", "unavailable"):
+                return
+            self.hass.async_create_task(self.async_request_refresh())
+
+        self._entry.async_on_unload(
+            async_track_state_change_event(
+                self.hass,
+                tracked_entities,
+                _handle_state_change,
+            )
         )
 
     async def async_load_previous_snapshot(self) -> None:
