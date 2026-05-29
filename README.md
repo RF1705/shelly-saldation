@@ -6,7 +6,7 @@
 
 Custom integration for Home Assistant that creates phase-balanced grid import/export sensors from an existing Shelly energy meter device.
 
-The Shelly 3EM Gen1 reports power per phase. In countries with saldierende Zaehler, the Home Assistant Energy Dashboard often needs grid import and export after the three phases have been netted. This integration lets you select the main Shelly device that already exists in Home Assistant, finds the power sensors on its phase sub-devices, balances the phases, and exposes:
+The Shelly 3EM Gen1 reports power per phase. In installations where the utility meter nets all three phases, the Home Assistant Energy Dashboard often needs grid import and export after the phases have been balanced. This integration lets you select the main Shelly device that already exists in Home Assistant, finds the power sensors on its phase sub-devices, balances the phases, and exposes:
 
 - Grid import energy in kWh
 - Grid export energy in kWh
