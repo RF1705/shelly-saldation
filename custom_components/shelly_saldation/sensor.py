@@ -16,8 +16,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
-    CONF_EXPORT_ENERGY,
-    CONF_IMPORT_ENERGY,
     CONF_POWER,
     CONF_SOURCE_DEVICE_CONNECTIONS,
     CONF_SOURCE_DEVICE_IDENTIFIERS,
@@ -141,24 +139,12 @@ class ShellySaldationSensor(ShellySaldationBaseEntity, SensorEntity):
         attributes = {
             "power_sources": self._entry.data.get(CONF_POWER, []),
         }
-        if self._entry.data.get(CONF_IMPORT_ENERGY):
-            attributes["detected_import_energy_sources"] = self._entry.data[
-                CONF_IMPORT_ENERGY
-            ]
-        if self._entry.data.get(CONF_EXPORT_ENERGY):
-            attributes["detected_export_energy_sources"] = self._entry.data[
-                CONF_EXPORT_ENERGY
-            ]
         related_entities = self._related_entities()
         if related_entities:
             attributes[ATTR_ENTITY_ID] = related_entities
         return attributes
 
     def _related_entities(self) -> list[str]:
-        if self.entity_description.key in (
-            "net_power",
-            "import_energy",
-            "export_energy",
-        ):
+        if self.entity_description.key == "net_power":
             return self._entry.data.get(CONF_POWER, [])
         return []

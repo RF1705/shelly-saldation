@@ -6,8 +6,6 @@ from homeassistant import config_entries
 from homeassistant.helpers import selector
 
 from .const import (
-    CONF_EXPORT_ENERGY,
-    CONF_IMPORT_ENERGY,
     CONF_POWER,
     CONF_SOURCE_DEVICE_CONNECTIONS,
     CONF_SOURCE_DEVICE,
@@ -47,8 +45,6 @@ class ShellySaldationConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                             list(connection)
                             for connection in sources.device_connections
                         ],
-                        CONF_IMPORT_ENERGY: list(sources.import_energy),
-                        CONF_EXPORT_ENERGY: list(sources.export_energy),
                         CONF_POWER: list(sources.power),
                     },
                 )
