@@ -34,9 +34,11 @@ def discover_sources_for_device(
         device_identifiers = tuple(sorted(device.identifiers))
         device_connections = tuple(sorted(device.connections))
 
+    source_device_ids = _child_device_ids(device_registry, device_id)
     entries = [
         entry
-        for entry in er.async_entries_for_device(entity_registry, device_id)
+        for source_device_id in source_device_ids
+        for entry in er.async_entries_for_device(entity_registry, source_device_id)
         if entry.domain == "sensor" and entry.disabled_by is None
     ]
 
@@ -89,6 +91,17 @@ def _has_device_class(
     device_class: SensorDeviceClass,
 ) -> bool:
     return _state_device_class(hass, entity_id) in {device_class, device_class.value}
+
+
+def _child_device_ids(
+    device_registry: dr.DeviceRegistry,
+    parent_device_id: str,
+) -> tuple[str, ...]:
+    return tuple(
+        device.id
+        for device in device_registry.devices.values()
+        if device.via_device_id == parent_device_id
+    )
 
 
 def _state_device_class(hass: HomeAssistant, entity_id: str) -> str | None:

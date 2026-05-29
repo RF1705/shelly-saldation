@@ -2,7 +2,7 @@
 
 Custom integration for Home Assistant that creates phase-balanced grid import/export sensors from an existing Shelly energy meter device.
 
-The Shelly 3EM Gen1 reports energy per phase. In countries with saldierende Zaehler, the Home Assistant Energy Dashboard often needs grid import and export after the three phases have been netted. This integration lets you select the Shelly device that already exists in Home Assistant, finds its import/export energy sensors, compares their counters, and exposes:
+The Shelly 3EM Gen1 reports energy per phase. In countries with saldierende Zaehler, the Home Assistant Energy Dashboard often needs grid import and export after the three phases have been netted. This integration lets you select the main Shelly device that already exists in Home Assistant, finds the import/export energy sensors on its phase sub-devices, compares their counters, and exposes:
 
 - Balanced grid import energy in kWh
 - Balanced grid export energy in kWh
@@ -25,7 +25,7 @@ Copy `custom_components/shelly_saldation` into your Home Assistant `custom_compo
 
 The first update after initial setup initializes the baseline. After that, the integration stores both the last source counters and its own balanced import/export counters in Home Assistant storage. On restart, it can continue from the last known values.
 
-Shelly Saldation automatically detects import, returned/export, and power sensors from the selected Shelly device. The detected source entity IDs are shown as attributes on the created sensors, which makes checking the setup easier.
+Shelly Saldation automatically detects import, returned/export, and power sensors from the phase sub-devices below the selected Shelly device. The main device itself is not used as a source. The detected source entity IDs are shown as attributes on the created sensors, which makes checking the setup easier.
 
 The created sensors are attached to the selected Shelly device in Home Assistant. On the device page you should see both integrations, `Shelly` and `Shelly Saldation`, and the balanced sensors will appear directly on that Shelly device.
 
