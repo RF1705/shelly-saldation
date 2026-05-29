@@ -33,7 +33,7 @@ SENSORS: tuple[ShellySaldationSensorDescription, ...] = (
     ShellySaldationSensorDescription(
         key="net_power",
         translation_key="net_power",
-        name="Balanced net power",
+        name="Net power",
         native_unit_of_measurement=UnitOfPower.WATT,
         device_class=SensorDeviceClass.POWER,
         state_class=SensorStateClass.MEASUREMENT,
@@ -46,7 +46,7 @@ SENSORS: tuple[ShellySaldationSensorDescription, ...] = (
     ShellySaldationSensorDescription(
         key="import_energy",
         translation_key="import_energy",
-        name="Balanced grid import energy",
+        name="Grid import energy",
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
         device_class=SensorDeviceClass.ENERGY,
         state_class=SensorStateClass.TOTAL_INCREASING,
@@ -55,7 +55,7 @@ SENSORS: tuple[ShellySaldationSensorDescription, ...] = (
     ShellySaldationSensorDescription(
         key="export_energy",
         translation_key="export_energy",
-        name="Balanced grid export energy",
+        name="Grid export energy",
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
         device_class=SensorDeviceClass.ENERGY,
         state_class=SensorStateClass.TOTAL_INCREASING,

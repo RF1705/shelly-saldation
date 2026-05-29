@@ -1,0 +1,32 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Shelly Saldation",
+        "description": "Waehle das Shelly-Energiemessgeraet aus. Shelly Saldation erkennt die Leistungs-Sensoren der Phasen automatisch.",
+        "data": {
+          "source_device": "Shelly-Geraet"
+        }
+      }
+    },
+    "error": {
+      "missing_power_sources": "Auf diesem Geraet wurden keine Phasen-Leistungssensoren gefunden."
+    },
+    "abort": {
+      "already_configured": "Dieses Shelly-Geraet ist bereits eingerichtet."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "net_power": {
+        "name": "Netzleistung"
+      },
+      "import_energy": {
+        "name": "Netzbezug Energie"
+      },
+      "export_energy": {
+        "name": "Netzeinspeisung Energie"
+      }
+    }
+  }
+}
