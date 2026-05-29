@@ -27,4 +27,6 @@ The first update after initial setup initializes the baseline. After that, the i
 
 Shelly Saldation automatically detects import, returned/export, and power sensors from the selected Shelly device. The detected source entity IDs are shown as attributes on the created sensors, which makes checking the setup easier.
 
+The created sensors are attached to the selected Shelly device in Home Assistant. On the device page you should see both integrations, `Shelly` and `Shelly Saldation`, and the balanced sensors will appear directly on that Shelly device.
+
 For the Energy Dashboard, select the `Balanced grid import energy` entity as grid consumption and `Balanced grid export energy` as return to grid.

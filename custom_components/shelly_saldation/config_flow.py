@@ -11,7 +11,9 @@ from .const import (
     CONF_IMPORT_ENERGY,
     CONF_POWER,
     CONF_SCAN_INTERVAL,
+    CONF_SOURCE_DEVICE_CONNECTIONS,
     CONF_SOURCE_DEVICE,
+    CONF_SOURCE_DEVICE_IDENTIFIERS,
     DEFAULT_NAME,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
@@ -43,6 +45,14 @@ class ShellySaldationConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     data={
                         CONF_NAME: title,
                         CONF_SOURCE_DEVICE: device_id,
+                        CONF_SOURCE_DEVICE_IDENTIFIERS: [
+                            list(identifier)
+                            for identifier in sources.device_identifiers
+                        ],
+                        CONF_SOURCE_DEVICE_CONNECTIONS: [
+                            list(connection)
+                            for connection in sources.device_connections
+                        ],
                         CONF_IMPORT_ENERGY: list(sources.import_energy),
                         CONF_EXPORT_ENERGY: list(sources.export_energy),
                         CONF_POWER: list(sources.power),
@@ -52,7 +62,7 @@ class ShellySaldationConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         data_schema = vol.Schema(
             {
-                vol.Optional(CONF_NAME, default=DEFAULT_NAME): str,
+                vol.Optional(CONF_NAME): str,
                 vol.Required(CONF_SOURCE_DEVICE): selector.DeviceSelector(
                     selector.DeviceSelectorConfig(integration="shelly")
                 ),

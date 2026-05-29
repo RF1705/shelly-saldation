@@ -15,6 +15,8 @@ class DiscoveredSources:
     export_energy: tuple[str, ...]
     power: tuple[str, ...]
     device_name: str | None
+    device_identifiers: tuple[tuple[str, str], ...]
+    device_connections: tuple[tuple[str, str], ...]
 
 
 def discover_sources_for_device(
@@ -25,8 +27,12 @@ def discover_sources_for_device(
     device_registry = dr.async_get(hass)
     device = device_registry.async_get(device_id)
     device_name = None
+    device_identifiers: tuple[tuple[str, str], ...] = ()
+    device_connections: tuple[tuple[str, str], ...] = ()
     if device is not None:
         device_name = device.name_by_user or device.name
+        device_identifiers = tuple(sorted(device.identifiers))
+        device_connections = tuple(sorted(device.connections))
 
     entries = [
         entry
@@ -72,6 +78,8 @@ def discover_sources_for_device(
         export_energy=tuple(sorted(export_energy, key=_natural_sort_key)),
         power=tuple(sorted(power, key=_natural_sort_key)),
         device_name=device_name,
+        device_identifiers=device_identifiers,
+        device_connections=device_connections,
     )
 
 

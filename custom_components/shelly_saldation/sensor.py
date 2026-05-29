@@ -19,9 +19,9 @@ from .const import (
     CONF_EXPORT_ENERGY,
     CONF_IMPORT_ENERGY,
     CONF_POWER,
+    CONF_SOURCE_DEVICE_CONNECTIONS,
+    CONF_SOURCE_DEVICE_IDENTIFIERS,
     DOMAIN,
-    MANUFACTURER,
-    MODEL,
 )
 from .coordinator import BalancedSample, ShellySaldationCoordinator
 
@@ -94,12 +94,26 @@ class ShellySaldationBaseEntity(CoordinatorEntity[ShellySaldationCoordinator]):
     ) -> None:
         super().__init__(coordinator)
         self._entry = entry
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, entry.entry_id)},
-            "manufacturer": MANUFACTURER,
-            "model": MODEL,
-            "name": entry.title,
+        self._attr_device_info = self._device_info()
+
+    def _device_info(self) -> dict:
+        identifiers = {
+            tuple(identifier)
+            for identifier in self._entry.data.get(CONF_SOURCE_DEVICE_IDENTIFIERS, [])
         }
+        connections = {
+            tuple(connection)
+            for connection in self._entry.data.get(CONF_SOURCE_DEVICE_CONNECTIONS, [])
+        }
+
+        device_info: dict = {"name": self._entry.title}
+        if identifiers:
+            device_info["identifiers"] = identifiers
+        if connections:
+            device_info["connections"] = connections
+        if not identifiers and not connections:
+            device_info["identifiers"] = {(DOMAIN, self._entry.entry_id)}
+        return device_info
 
 
 class ShellySaldationSensor(ShellySaldationBaseEntity, SensorEntity):
