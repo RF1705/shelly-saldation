@@ -27,6 +27,8 @@ Copy `custom_components/shelly_saldation` into your Home Assistant `custom_compo
 
 ## Notes
 
+Shelly Saldation has been successfully tested with a Shelly 3EM Gen1 (SHEM-3). It may also work with other Shelly three-phase energy meters, such as Shelly Pro 3EM, as long as Home Assistant exposes the phase power sensors as sub-devices of the selected Shelly device.
+
 The first update after initial setup initializes the baseline. After that, the integration stores the last balanced power sample, timestamp, and its own balanced import/export counters in Home Assistant storage. On restart, it can continue from the last known values.
 
 Shelly Saldation automatically detects power sensors from the phase sub-devices below the selected Shelly device. The main device itself is not used as a source. Detected source entity IDs are shown as attributes on the created sensors, which makes checking the setup easier.
