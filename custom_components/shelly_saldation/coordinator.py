@@ -44,6 +44,23 @@ class BalancedSample:
     export_total_kwh: float
 
 
+class ShellySaldationStore(Store[dict]):
+    async def _async_migrate_func(
+        self,
+        old_major_version: int,
+        old_minor_version: int,
+        old_data: dict,
+    ) -> dict:
+        if old_major_version == 1:
+            return {
+                "power_w": [],
+                "timestamp": None,
+                "import_total_kwh": old_data.get("import_total_kwh", 0),
+                "export_total_kwh": old_data.get("export_total_kwh", 0),
+            }
+        return old_data
+
+
 class ShellySaldationCoordinator(DataUpdateCoordinator[BalancedSample]):
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
         self._entry = entry
@@ -51,10 +68,11 @@ class ShellySaldationCoordinator(DataUpdateCoordinator[BalancedSample]):
         self._previous_timestamp: datetime | None = None
         self._import_total_kwh = 0.0
         self._export_total_kwh = 0.0
-        self._store: Store[dict] = Store(
+        self._store: ShellySaldationStore = ShellySaldationStore(
             hass,
             STORAGE_VERSION,
             f"{DOMAIN}.{entry.entry_id}",
+            minor_version=1,
         )
 
         super().__init__(
@@ -89,12 +107,13 @@ class ShellySaldationCoordinator(DataUpdateCoordinator[BalancedSample]):
             return
 
         try:
-            self._previous_snapshot = SourceSnapshot(
-                power_w=tuple(float(value) for value in stored["power_w"]),
-            )
+            power_w = tuple(float(value) for value in stored["power_w"])
+            self._previous_snapshot = SourceSnapshot(power_w=power_w) if power_w else None
             timestamp = stored.get("timestamp")
             self._previous_timestamp = (
-                dt_util.parse_datetime(timestamp) if timestamp is not None else None
+                dt_util.parse_datetime(timestamp)
+                if timestamp is not None and self._previous_snapshot is not None
+                else None
             )
             self._import_total_kwh = float(stored.get("import_total_kwh", 0) or 0)
             self._export_total_kwh = float(stored.get("export_total_kwh", 0) or 0)
