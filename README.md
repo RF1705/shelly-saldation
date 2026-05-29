@@ -1,5 +1,9 @@
 # Shelly Saldation
 
+[![Validate](https://github.com/RF1705/shelly-saldation/actions/workflows/validate.yml/badge.svg)](https://github.com/RF1705/shelly-saldation/actions/workflows/validate.yml)
+[![Buy me a coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-rf1705-yellow?logo=buymeacoffee)](https://buymeacoffee.com/rf1705)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 Custom integration for Home Assistant that creates phase-balanced grid import/export sensors from an existing Shelly energy meter device.
 
 The Shelly 3EM Gen1 reports power per phase. In countries with saldierende Zaehler, the Home Assistant Energy Dashboard often needs grid import and export after the three phases have been netted. This integration lets you select the main Shelly device that already exists in Home Assistant, finds the power sensors on its phase sub-devices, balances the phases, and exposes:
@@ -34,3 +38,11 @@ Balanced grid import/export energy is calculated from balanced net power with tr
 The created sensors are attached to the selected Shelly device in Home Assistant. On the device page you should see both integrations, `Shelly` and `Shelly Saldation`, and the balanced sensors will appear directly on that Shelly device.
 
 For the Energy Dashboard, select the `Balanced grid import energy` entity as grid consumption and `Balanced grid export energy` as return to grid.
+
+## Support
+
+If Shelly Saldation is useful for you, you can support the project here: [buymeacoffee.com/rf1705](https://buymeacoffee.com/rf1705).
+
+## License
+
+Shelly Saldation is released under the [MIT License](LICENSE).
