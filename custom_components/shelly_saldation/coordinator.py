@@ -91,7 +91,7 @@ class ShellySaldationCoordinator(DataUpdateCoordinator[BalancedSample]):
             new_state = event.data.get("new_state")
             if new_state is None or new_state.state in ("unknown", "unavailable"):
                 return
-            self.hass.async_create_task(self.async_request_refresh())
+            self.async_update_from_current_states()
 
         self._entry.async_on_unload(
             async_track_state_change_event(
@@ -108,7 +108,9 @@ class ShellySaldationCoordinator(DataUpdateCoordinator[BalancedSample]):
 
         try:
             power_w = tuple(float(value) for value in stored["power_w"])
-            self._previous_snapshot = SourceSnapshot(power_w=power_w) if power_w else None
+            self._previous_snapshot = (
+                SourceSnapshot(power_w=power_w) if power_w else None
+            )
             timestamp = stored.get("timestamp")
             self._previous_timestamp = (
                 dt_util.parse_datetime(timestamp)
@@ -122,6 +124,24 @@ class ShellySaldationCoordinator(DataUpdateCoordinator[BalancedSample]):
             self._previous_timestamp = None
 
     async def _async_update_data(self) -> BalancedSample:
+        sample = self._calculate_sample_from_current_states()
+        await self._async_save_state()
+        return sample
+
+    @callback
+    def async_update_from_current_states(self) -> None:
+        try:
+            sample = self._calculate_sample_from_current_states()
+        except UpdateFailed as err:
+            self.last_update_success = False
+            _LOGGER.debug("Unable to update Shelly Saldation state: %s", err)
+            return
+
+        self.last_update_success = True
+        self.async_set_updated_data(sample)
+        self.hass.async_create_task(self._async_save_state())
+
+    def _calculate_sample_from_current_states(self) -> BalancedSample:
         snapshot = self._read_source_snapshot()
         timestamp = dt_util.utcnow()
 
@@ -149,21 +169,25 @@ class ShellySaldationCoordinator(DataUpdateCoordinator[BalancedSample]):
         self._previous_snapshot = snapshot
         self._previous_timestamp = timestamp
 
-        await self._store.async_save(
-            {
-                "power_w": list(snapshot.power_w),
-                "timestamp": timestamp.isoformat(),
-                "import_total_kwh": self._import_total_kwh,
-                "export_total_kwh": self._export_total_kwh,
-            }
-        )
-
         return BalancedSample(
             snapshot,
             import_delta_wh,
             export_delta_wh,
             self._import_total_kwh,
             self._export_total_kwh,
+        )
+
+    async def _async_save_state(self) -> None:
+        if self._previous_snapshot is None or self._previous_timestamp is None:
+            return
+
+        await self._store.async_save(
+            {
+                "power_w": list(self._previous_snapshot.power_w),
+                "timestamp": self._previous_timestamp.isoformat(),
+                "import_total_kwh": self._import_total_kwh,
+                "export_total_kwh": self._export_total_kwh,
+            }
         )
 
     def _read_source_snapshot(self) -> SourceSnapshot:
