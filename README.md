@@ -3,6 +3,7 @@
 [![Validate](https://github.com/RF1705/shelly-saldation/actions/workflows/validate.yml/badge.svg)](https://github.com/RF1705/shelly-saldation/actions/workflows/validate.yml)
 [![Buy me a coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-rf1705-yellow?logo=buymeacoffee)](https://buymeacoffee.com/rf1705)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Open your Home Assistant instance and open this repository in HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=RF1705&repository=shelly-saldation&category=integration)
 
 Custom integration for Home Assistant that creates phase-balanced grid import/export sensors from an existing Shelly energy meter device.
 
