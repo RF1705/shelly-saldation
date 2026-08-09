@@ -1,11 +1,13 @@
 {
   "domain": "shelly_saldation",
   "name": "Shelly Saldation",
-  "codeowners": [],
+  "codeowners": [
+    "@RF1705"
+  ],
   "config_flow": true,
   "documentation": "https://github.com/RF1705/shelly-saldation",
-  "iot_class": "calculated",
+  "iot_class": "local_polling",
   "issue_tracker": "https://github.com/RF1705/shelly-saldation/issues",
   "requirements": [],
-  "version": "0.1.1"
+  "version": "0.1.2"
 }
